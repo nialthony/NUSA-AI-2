@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ChevronDown } from "lucide-react";
 import { api, errText, tanggal, KATEGORI, API } from "@/lib/api";
 import { AdminLayout } from "@/components/AdminLayout";
+import { StatusTimeline } from "@/components/StatusTimeline";
 import { Stat, Skeleton, ErrorBox, StatusBadge, SeverityBadge, Empty, SectionTitle } from "@/components/Shared";
 
 const STATUSES = ["Terkirim", "Ditinjau", "Ditangani", "Selesai", "Ditolak"];
@@ -10,6 +12,7 @@ export default function AdminReports() {
   const [reports, setReports] = useState(null);
   const [filters, setFilters] = useState({ category: "", severity: "", status: "", rt: "", q: "" });
   const [err, setErr] = useState("");
+  const [openId, setOpenId] = useState(null);
 
   const load = useCallback(() => {
     setErr("");
@@ -24,7 +27,7 @@ export default function AdminReports() {
   const setStatus = async (id, status) => {
     try {
       await api.patch(`/reports/${id}/status`, { status });
-      toast.success(`Status diperbarui menjadi "${status}"`);
+      toast.success(`Status diperbarui menjadi "${status}" · pelapor sudah diberi tahu`);
       load();
     } catch (e) {
       toast.error(errText(e));
@@ -109,8 +112,22 @@ export default function AdminReports() {
                   >
                     {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
+                  <button
+                    data-testid={`admin-timeline-toggle-${i}`}
+                    onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                    aria-expanded={openId === r.id}
+                    className="inline-flex items-center justify-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    Riwayat ({r.timeline?.length || 0})
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${openId === r.id ? "rotate-180" : ""}`} />
+                  </button>
                 </div>
               </div>
+              {openId === r.id && (
+                <div className="animate-rise mt-4 border-t border-slate-100 pt-4">
+                  <StatusTimeline events={r.timeline} testId={`admin-timeline-${i}`} />
+                </div>
+              )}
             </div>
           ))}
         </div>

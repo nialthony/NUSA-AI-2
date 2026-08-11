@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from models import (User, Household, Resident, Report, ReportAIAnalysis, FinanceTransaction,
-                    Announcement, Activity, CommunityMetric)
+                    Announcement, Activity, CommunityMetric, ReportStatusEvent, Notification)
 from auth import hash_password
 
 random.seed(9)
@@ -72,6 +72,9 @@ ANNOUNCEMENTS = [
 ]
 
 
+RT_COORD = {"09": (-6.9168, 107.6188), "04": (-6.9205, 107.6142), "07": (-6.9142, 107.6231), "11": (-6.9231, 107.6205)}
+
+
 async def seed(db: AsyncSession):
     demo_pw = hash_password(os.environ.get("DEMO_PASSWORD", "demo123"))
     accounts = [
@@ -124,8 +127,11 @@ async def seed(db: AsyncSession):
         else:
             status = "Selesai" if i % 5 else "Ditangani"
         rt = ["09", "04", "07", "11"][i % 4] if cat != "Drainase" else ("04" if i % 2 == 0 else "09")
+        base_lat, base_lng = RT_COORD[rt]
         rep = Report(title=title, description=f"{title}. Dilaporkan warga di {STREETS[i % len(STREETS)]}, RT {rt}.",
                      category=cat, severity=sev, status=status, rt=rt, rw="04",
+                     lat=round(base_lat + random.uniform(-0.0016, 0.0016), 6),
+                     lng=round(base_lng + random.uniform(-0.0016, 0.0016), 6),
                      location=f"{STREETS[i % len(STREETS)]}, RT {rt} / RW 04", created_at=created,
                      reporter_name=NAMES[i % len(NAMES)],
                      reporter_id=resident_user.id if i % 4 == 0 else None,
@@ -137,6 +143,24 @@ async def seed(db: AsyncSession):
                                 summary=f"AI mendeteksi indikasi {issue.lower()} pada foto laporan warga di RT {rt}. Kondisi ini berpotensi mengganggu kenyamanan dan keselamatan warga.",
                                 recommended_action=f"Lakukan inspeksi lapangan terkait {issue.lower()} dan tentukan prioritas perbaikan.",
                                 provider="mock", created_at=created))
+        flow = ["Terkirim", "Ditinjau", "Ditangani", "Selesai"]
+        steps = flow[: flow.index(status) + 1] if status in flow else ["Terkirim"]
+        notes = {"Terkirim": "Laporan diterima sistem NUSA dan menunggu peninjauan pengurus.",
+                 "Ditinjau": "Pengurus RT meninjau laporan dan memverifikasi kondisi lapangan.",
+                 "Ditangani": "Perbaikan sedang dikerjakan oleh petugas lingkungan.",
+                 "Selesai": "Masalah telah diselesaikan dan dikonfirmasi pengurus RT."}
+        prev = ""
+        for si, st in enumerate(steps):
+            db.add(ReportStatusEvent(report_id=rep.id, from_status=prev, to_status=st, note=notes[st],
+                                     changed_by="Sistem NUSA" if si == 0 else "Pak Hendra Gunawan",
+                                     created_at=created + timedelta(days=si * 2)))
+            prev = st
+        if rep.reporter_id and len(steps) > 1:
+            db.add(Notification(user_id=rep.reporter_id, report_id=rep.id,
+                                title=f"Laporan Anda kini {steps[-1].lower()}",
+                                body=f"“{title}” diperbarui menjadi status {steps[-1]} oleh pengurus RT.",
+                                read=len(steps) > 3,
+                                created_at=created + timedelta(days=(len(steps) - 1) * 2)))
 
     for m in range(6, -1, -1):
         base = now - timedelta(days=30 * m)

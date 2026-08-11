@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import { api, errText, rupiah, tanggal } from "@/lib/api";
+import { ArrowDownRight, ArrowUpRight, ReceiptText } from "lucide-react";
+import { api, errText, rupiah, tanggal, API } from "@/lib/api";
 import { ResidentLayout } from "@/components/ResidentLayout";
 import { AskNusa } from "@/components/AskNusa";
 import { Skeleton, ErrorBox, SectionTitle } from "@/components/Shared";
@@ -51,6 +51,15 @@ export default function ResidentFinance() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{t.description}</p>
                     <p className="text-[11px] text-slate-400">{t.category} · {tanggal(t.date)}</p>
+                    {t.receipt_path && (
+                      <a
+                        data-testid={`resident-receipt-${i}`} href={`${API}/files/${t.receipt_path}`}
+                        target="_blank" rel="noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 hover:underline"
+                      >
+                        <ReceiptText className="h-3 w-3" /> Lihat bukti
+                      </a>
+                    )}
                   </div>
                   <p className={`shrink-0 text-sm font-semibold ${t.type === "income" ? "text-emerald-700" : "text-rose-700"}`}>
                     {t.type === "income" ? "+" : "−"} {rupiah(t.amount)}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area, Legend } from "recharts";
 import { api, errText, bulanLabel } from "@/lib/api";
 import { AdminLayout } from "@/components/AdminLayout";
+import { ReportMap } from "@/components/ReportMap";
 import { Stat, Skeleton, ErrorBox, SectionTitle, InsightCard } from "@/components/Shared";
 
 const COLORS = ["#10B981", "#0F172A", "#F59E0B", "#3B82F6", "#94A3B8", "#EF4444", "#A7F3D0"];
@@ -112,6 +113,8 @@ export default function AdminAnalytics() {
               </div>
             </div>
           </div>
+
+          <div className="mt-6"><ReportMap /></div>
 
           <div className="mt-8">
             <SectionTitle overline="Wawasan NUSA" title="Analisis Otomatis" />

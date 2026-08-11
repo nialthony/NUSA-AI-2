@@ -68,9 +68,36 @@ class Report(Base):
     rw: Mapped[str] = mapped_column(String, default="04")
     location: Mapped[str] = mapped_column(String, default="RT 09 / RW 04")
     image_path: Mapped[str] = mapped_column(String, default="")
+    lat: Mapped[float] = mapped_column(Float, default=-6.9175)
+    lng: Mapped[float] = mapped_column(Float, default=107.6191)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     analysis: Mapped["ReportAIAnalysis"] = relationship(back_populates="report", uselist=False)
+    events: Mapped[list["ReportStatusEvent"]] = relationship(
+        back_populates="report", order_by="ReportStatusEvent.created_at")
+
+
+class ReportStatusEvent(Base):
+    __tablename__ = "report_status_events"
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=uid)
+    report_id: Mapped[str] = mapped_column(ForeignKey("reports.id"))
+    from_status: Mapped[str] = mapped_column(String, default="")
+    to_status: Mapped[str] = mapped_column(String)
+    note: Mapped[str] = mapped_column(Text, default="")
+    changed_by: Mapped[str] = mapped_column(String, default="Sistem NUSA")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    report: Mapped["Report"] = relationship(back_populates="events")
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=uid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    report_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    title: Mapped[str] = mapped_column(String)
+    body: Mapped[str] = mapped_column(Text, default="")
+    read: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
 class ReportAIAnalysis(Base):

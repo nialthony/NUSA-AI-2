@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, ArrowUpRight, ArrowDownRight, Loader2 } from "lucide-react";
+import { Plus, ArrowUpRight, ArrowDownRight, Loader2, Paperclip, ReceiptText } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Legend } from "recharts";
-import { api, errText, rupiah, tanggal, bulanLabel, KATEGORI_KAS } from "@/lib/api";
+import { api, errText, rupiah, tanggal, bulanLabel, KATEGORI_KAS, API } from "@/lib/api";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Stat, Skeleton, ErrorBox, SectionTitle } from "@/components/Shared";
 import { AskNusa } from "@/components/AskNusa";
@@ -14,6 +14,9 @@ export default function AdminFinance() {
   const [form, setForm] = useState({ description: "", category: "Iuran Warga", type: "income", amount: "" });
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
+  const [uploadingId, setUploadingId] = useState(null);
+  const receiptRef = useRef(null);
+  const targetTx = useRef(null);
 
   const load = () => {
     setErr("");
@@ -40,6 +43,31 @@ export default function AdminFinance() {
       setSaving(false);
     }
   };
+
+  const pickReceipt = (txId) => {
+    targetTx.current = txId;
+    receiptRef.current?.click();
+  };
+
+  const uploadReceipt = async (e) => {
+    const file = e.target.files?.[0];
+    const txId = targetTx.current;
+    e.target.value = "";
+    if (!file || !txId) return;
+    setUploadingId(txId);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      await api.post(`/finance/${txId}/receipt`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      toast.success("Bukti transaksi tersimpan dan bisa dilihat warga");
+      load();
+    } catch (e2) {
+      toast.error(errText(e2));
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
 
   return (
     <AdminLayout>
@@ -145,13 +173,22 @@ export default function AdminFinance() {
             </div>
           </div>
 
+          <input
+            ref={receiptRef} data-testid="receipt-file-input" type="file"
+            accept="image/jpeg,image/png,image/webp,application/pdf" onChange={uploadReceipt} className="hidden"
+          />
+
           <div className="mt-8">
-            <SectionTitle overline="Buku Kas" title={`${data.transactions.length} transaksi`} />
+            <SectionTitle
+              overline="Buku Kas"
+              title={`${data.transactions.length} transaksi`}
+              right={<span className="text-xs text-slate-500">{data.transactions.filter((t) => t.receipt_path).length} transaksi berbukti</span>}
+            />
             <div className="nusa-card overflow-x-auto">
               <table data-testid="finance-table" className="w-full min-w-[760px] text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 text-left text-[10px] uppercase tracking-wider text-slate-400">
-                    {["Tanggal", "Deskripsi", "Kategori", "Tipe", "Dicatat Oleh", "Jumlah"].map((h, i) => (
+                    {["Tanggal", "Deskripsi", "Kategori", "Tipe", "Bukti", "Jumlah"].map((h, i) => (
                       <th key={h} className={`px-5 py-3 font-medium ${i === 5 ? "text-right" : ""}`}>{h}</th>
                     ))}
                   </tr>
@@ -163,7 +200,26 @@ export default function AdminFinance() {
                       <td className="px-5 py-3 font-medium">{t.description}</td>
                       <td className="px-5 py-3 text-slate-600">{t.category}</td>
                       <td className="px-5 py-3 text-slate-600">{t.type === "income" ? "Pemasukan" : "Pengeluaran"}</td>
-                      <td className="px-5 py-3 text-slate-500">{t.created_by}</td>
+                      <td className="px-5 py-3">
+                        {t.receipt_path ? (
+                          <a
+                            data-testid={`receipt-view-${i}`} href={`${API}/files/${t.receipt_path}`}
+                            target="_blank" rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline"
+                          >
+                            <ReceiptText className="h-3.5 w-3.5" /> Lihat bukti
+                          </a>
+                        ) : (
+                          <button
+                            data-testid={`receipt-upload-${i}`} onClick={() => pickReceipt(t.id)}
+                            disabled={uploadingId === t.id}
+                            className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 disabled:opacity-50"
+                          >
+                            {uploadingId === t.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Paperclip className="h-3.5 w-3.5" />}
+                            Unggah
+                          </button>
+                        )}
+                      </td>
                       <td className={`px-5 py-3 text-right font-semibold ${t.type === "income" ? "text-emerald-700" : "text-rose-700"}`}>
                         {t.type === "income" ? "+" : "−"} {rupiah(t.amount)}
                       </td>

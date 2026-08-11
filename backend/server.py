@@ -18,12 +18,12 @@ from sqlalchemy.orm import selectinload
 
 from db import Base, engine, get_db, SessionLocal
 from models import (User, Resident, Household, Report, ReportAIAnalysis, FinanceTransaction,
-                    Announcement, Activity, AIConversation)
+                    Announcement, Activity, AIConversation, ReportStatusEvent, Notification)
 from auth import hash_password, verify_password, create_access_token, get_current_user, require_roles
 import analytics
 import ai_service
 import storage
-from seed import seed
+from seed import seed, RT_COORD
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("nusa")
@@ -70,6 +70,7 @@ class AskIn(BaseModel):
 
 class StatusIn(BaseModel):
     status: str
+    note: Optional[str] = Field(default=None, max_length=400)
 
 
 def user_out(u: User) -> dict:
@@ -82,8 +83,12 @@ def report_out(r: Report) -> dict:
         "id": r.id, "title": r.title, "description": r.description, "category": r.category,
         "severity": r.severity, "status": r.status, "rt": r.rt, "rw": r.rw, "location": r.location,
         "image_path": r.image_path, "reporter_name": r.reporter_name,
+        "lat": r.lat, "lng": r.lng,
         "created_at": r.created_at.isoformat(),
         "resolved_at": r.resolved_at.isoformat() if r.resolved_at else None,
+        "timeline": [{"from_status": e.from_status, "to_status": e.to_status, "note": e.note,
+                      "changed_by": e.changed_by, "created_at": e.created_at.isoformat()}
+                     for e in (r.events or [])],
         "analysis": None if not a else {
             "category": a.category, "issue": a.issue, "severity": a.severity,
             "confidence": a.confidence, "summary": a.summary,
@@ -150,12 +155,15 @@ async def public_stats(db: AsyncSession = Depends(get_db)):
 
 
 # ---------- reports ----------
+REPORT_LOAD = (selectinload(Report.analysis), selectinload(Report.events))
+
+
 @api.get("/reports")
 async def list_reports(db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user),
                        mine: bool = False, category: Optional[str] = None, severity: Optional[str] = None,
                        status: Optional[str] = None, rt: Optional[str] = None, q: Optional[str] = None,
                        limit: int = Query(200, le=500)):
-    stmt = select(Report).options(selectinload(Report.analysis)).order_by(desc(Report.created_at)).limit(limit)
+    stmt = select(Report).options(*REPORT_LOAD).order_by(desc(Report.created_at)).limit(limit)
     if mine or user.role == "resident":
         stmt = stmt.where(Report.reporter_id == user.id)
     if category:
@@ -176,7 +184,7 @@ async def list_reports(db: AsyncSession = Depends(get_db), user: User = Depends(
 async def list_all_reports(db: AsyncSession = Depends(get_db), user: User = Depends(require_roles("admin", "superadmin")),
                            category: Optional[str] = None, severity: Optional[str] = None,
                            status: Optional[str] = None, rt: Optional[str] = None, q: Optional[str] = None):
-    stmt = select(Report).options(selectinload(Report.analysis)).order_by(desc(Report.created_at))
+    stmt = select(Report).options(*REPORT_LOAD).order_by(desc(Report.created_at))
     for col, val in ((Report.category, category), (Report.severity, severity), (Report.status, status), (Report.rt, rt)):
         if val:
             stmt = stmt.where(col == val)
@@ -216,9 +224,14 @@ async def create_report(payload: dict, db: AsyncSession = Depends(get_db), user:
     rep = Report(title=title, description=(payload.get("description") or "")[:2000], category=category,
                  severity=severity, status="Terkirim", rt=rt, rw="04",
                  location=payload.get("location") or f"RT {rt} / RW 04",
+                 lat=float(payload.get("lat") or RT_COORD.get(rt, RT_COORD["09"])[0]),
+                 lng=float(payload.get("lng") or RT_COORD.get(rt, RT_COORD["09"])[1]),
                  image_path=payload.get("image_path") or "", reporter_id=user.id, reporter_name=user.name)
     db.add(rep)
     await db.flush()
+    db.add(ReportStatusEvent(report_id=rep.id, from_status="", to_status="Terkirim",
+                             note="Laporan diterima sistem NUSA dan menunggu peninjauan pengurus.",
+                             changed_by="Sistem NUSA"))
     a = payload.get("analysis") or {}
     if a:
         db.add(ReportAIAnalysis(report_id=rep.id, category=a.get("category", category),
@@ -227,7 +240,8 @@ async def create_report(payload: dict, db: AsyncSession = Depends(get_db), user:
                                 recommended_action=a.get("recommended_action", ""),
                                 provider=a.get("provider", "mock")))
     await db.commit()
-    r = (await db.execute(select(Report).options(selectinload(Report.analysis)).where(Report.id == rep.id))).scalar_one()
+    r = (await db.execute(select(Report).options(*REPORT_LOAD).where(Report.id == rep.id)
+                          .execution_options(populate_existing=True))).scalar_one()
     return report_out(r)
 
 
@@ -237,13 +251,69 @@ async def update_status(report_id: str, payload: StatusIn, db: AsyncSession = De
     valid = ["Terkirim", "Ditinjau", "Ditangani", "Selesai", "Ditolak"]
     if payload.status not in valid:
         raise HTTPException(status_code=400, detail=f"Status harus salah satu dari {valid}")
-    r = (await db.execute(select(Report).options(selectinload(Report.analysis)).where(Report.id == report_id))).scalar_one_or_none()
+    r = (await db.execute(select(Report).options(*REPORT_LOAD).where(Report.id == report_id))).scalar_one_or_none()
     if not r:
         raise HTTPException(status_code=404, detail="Laporan tidak ditemukan")
+    if r.status == payload.status:
+        raise HTTPException(status_code=400, detail=f"Laporan sudah berstatus {payload.status}")
+    old = r.status
+    default_note = {
+        "Terkirim": "Laporan dikembalikan ke antrean peninjauan.",
+        "Ditinjau": "Pengurus RT meninjau laporan dan memverifikasi kondisi lapangan.",
+        "Ditangani": "Perbaikan sedang dikerjakan oleh petugas lingkungan.",
+        "Selesai": "Masalah telah diselesaikan dan dikonfirmasi pengurus RT.",
+        "Ditolak": "Laporan ditolak karena tidak memenuhi kriteria penanganan RT.",
+    }[payload.status]
     r.status = payload.status
     r.resolved_at = datetime.now(timezone.utc) if payload.status == "Selesai" else None
+    db.add(ReportStatusEvent(report_id=r.id, from_status=old, to_status=payload.status,
+                             note=(payload.note or default_note)[:400], changed_by=user.name))
+    if r.reporter_id:
+        db.add(Notification(user_id=r.reporter_id, report_id=r.id,
+                            title=f"Laporan Anda kini {payload.status.lower()}",
+                            body=f"“{r.title}” diperbarui dari {old} menjadi {payload.status} oleh {user.name}."))
     await db.commit()
+    r = (await db.execute(select(Report).options(*REPORT_LOAD).where(Report.id == report_id)
+                          .execution_options(populate_existing=True))).scalar_one()
     return report_out(r)
+
+
+@api.get("/reports/map")
+async def reports_map(db: AsyncSession = Depends(get_db), user: User = Depends(require_roles("admin", "superadmin"))):
+    rows = (await db.execute(select(Report).order_by(desc(Report.created_at)))).scalars().all()
+    points = [{"id": r.id, "title": r.title, "category": r.category, "severity": r.severity,
+               "status": r.status, "rt": r.rt, "lat": r.lat, "lng": r.lng,
+               "created_at": r.created_at.isoformat()} for r in rows]
+    hotspots: dict[str, dict] = {}
+    for r in rows:
+        h = hotspots.setdefault(r.rt, {"rt": r.rt, "total": 0, "urgent": 0, "open": 0,
+                                       "lat": r.lat, "lng": r.lng})
+        h["total"] += 1
+        if r.severity == "HIGH":
+            h["urgent"] += 1
+        if r.status in ("Terkirim", "Ditinjau", "Ditangani"):
+            h["open"] += 1
+    return {"points": points, "hotspots": sorted(hotspots.values(), key=lambda h: -h["urgent"]),
+            "center": {"lat": RT_COORD["09"][0], "lng": RT_COORD["09"][1]}}
+
+
+@api.get("/notifications")
+async def list_notifications(db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+    rows = (await db.execute(select(Notification).where(Notification.user_id == user.id)
+                             .order_by(desc(Notification.created_at)).limit(30))).scalars().all()
+    return {"unread": sum(1 for n in rows if not n.read),
+            "items": [{"id": n.id, "title": n.title, "body": n.body, "read": n.read,
+                       "report_id": n.report_id, "created_at": n.created_at.isoformat()} for n in rows]}
+
+
+@api.post("/notifications/read")
+async def read_notifications(db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+    rows = (await db.execute(select(Notification).where(Notification.user_id == user.id,
+                                                       Notification.read == False))).scalars().all()
+    for n in rows:
+        n.read = True
+    await db.commit()
+    return {"ok": True, "updated": len(rows)}
 
 
 @api.get("/files/{path:path}")
@@ -310,6 +380,29 @@ async def create_tx(payload: TxIn, db: AsyncSession = Depends(get_db),
     await db.commit()
     return {"id": t.id, "date": t.date.isoformat(), "description": t.description, "category": t.category,
             "type": t.type, "amount": t.amount, "created_by": t.created_by, "receipt_path": ""}
+
+
+@api.post("/finance/{tx_id}/receipt")
+async def upload_receipt(tx_id: str, file: UploadFile = File(...), db: AsyncSession = Depends(get_db),
+                         user: User = Depends(require_roles("admin", "superadmin"))):
+    t = (await db.execute(select(FinanceTransaction).where(FinanceTransaction.id == tx_id))).scalar_one_or_none()
+    if not t:
+        raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
+    ext = (file.filename or "bukti.jpg").rsplit(".", 1)[-1].lower()
+    allowed = {**MIME, "pdf": "application/pdf"}
+    if ext not in allowed:
+        raise HTTPException(status_code=400, detail="Bukti harus berupa JPG, PNG, WEBP, atau PDF")
+    data = await file.read()
+    if len(data) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Ukuran bukti maksimal 8MB")
+    try:
+        stored = storage.put_object(f"nusa/receipts/{tx_id}/{uuid.uuid4()}.{ext}", data, allowed[ext])
+    except Exception as e:
+        logger.warning(f"Upload bukti gagal: {e}")
+        raise HTTPException(status_code=502, detail="Penyimpanan bukti sedang tidak tersedia. Coba lagi.")
+    t.receipt_path = stored["path"]
+    await db.commit()
+    return {"id": t.id, "receipt_path": t.receipt_path}
 
 
 @api.get("/finance/monthly")

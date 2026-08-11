@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Plus } from "lucide-react";
+import { MapPin, Plus, ChevronDown } from "lucide-react";
 import { api, errText, tanggal, API } from "@/lib/api";
 import { ResidentLayout } from "@/components/ResidentLayout";
+import { StatusTimeline } from "@/components/StatusTimeline";
 import { StatusBadge, SeverityBadge, Skeleton, Empty, ErrorBox } from "@/components/Shared";
 
 export default function MyReports() {
   const [reports, setReports] = useState(null);
   const [err, setErr] = useState("");
+  const [openId, setOpenId] = useState(null);
 
   const load = () => {
     setErr("");
@@ -67,6 +69,20 @@ export default function MyReports() {
               <p className="border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-xs leading-relaxed text-slate-600">
                 <span className="font-medium text-slate-700">Analisis AI:</span> {r.analysis.summary}
               </p>
+            )}
+            <button
+              data-testid={`timeline-toggle-${i}`}
+              onClick={() => setOpenId(openId === r.id ? null : r.id)}
+              aria-expanded={openId === r.id}
+              className="flex w-full items-center justify-between border-t border-slate-100 px-4 py-3 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              Riwayat Status ({r.timeline?.length || 0})
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${openId === r.id ? "rotate-180" : ""}`} />
+            </button>
+            {openId === r.id && (
+              <div className="animate-rise border-t border-slate-100 px-4 py-4">
+                <StatusTimeline events={r.timeline} testId={`timeline-${i}`} />
+              </div>
             )}
           </div>
         ))}

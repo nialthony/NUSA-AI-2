@@ -46,12 +46,29 @@ announcements; activities; RBAC; polished loading/empty/error states; mobile-fir
 - Test suite: `/app/backend/tests/backend_test.py` (28 tests, all pass); E2E flows passed.
 
 ## Backlog
-- P1: photo receipts for finance transactions; assign reports to pengurus; report detail page with timeline.
+- P1: assign reports to pengurus; report detail page; export kas ke Excel/CSV.
 - P1: resident registration + household self-service; WhatsApp/notification push on status change.
 - P2: multi-community (superadmin onboarding a second RT), real PDF export server-side, offline-first PWA,
-  activity RSVP/participant records, streaming AI responses (SSE).
+  activity RSVP/participant records, streaming AI responses (SSE), pagination for notifications.
+
+## Iteration 2 — Riwayat Status, Bukti Transaksi, Peta Titik Masalah (2026-06)
+- **Riwayat Status Laporan**: tabel `report_status_events` + `notifications`. Setiap perubahan status
+  (`PATCH /api/reports/{id}/status`, body `{"status","note"}`) menambah event ber-timestamp dan mengirim
+  notifikasi ke pelapor. Status yang sama ditolak (400). Timeline tampil di `/resident/reports` dan
+  `/admin/reports` (komponen `StatusTimeline.jsx`); bel notifikasi + badge belum dibaca di layout warga
+  (`GET /api/notifications`, `POST /api/notifications/read`).
+- **Bukti Transaksi**: `POST /api/finance/{tx_id}/receipt` (multipart, admin saja, JPG/PNG/WEBP/PDF ≤8MB,
+  disimpan di object storage). Kolom "Bukti" di `/admin/finance` untuk unggah/lihat, dan tautan
+  "Lihat bukti" untuk warga di `/resident/finance`.
+- **Peta Titik Masalah**: kolom `lat`/`lng` pada laporan (koordinat per RT), `GET /api/reports/map`
+  (points + hotspots per RT + center, admin saja). Peta Leaflet/OpenStreetMap di `/admin/analytics`
+  dengan marker berwarna per severity, filter tingkat & "hanya belum selesai", serta kartu titik rawan
+  per RT yang memfokuskan peta.
+- Diuji: 12 tes backend baru (`/app/backend/tests/test_new_features.py`) semuanya lulus + E2E desktop/mobile
+  tanpa error konsol.
 
 ## Next Tasks
-1. Report status timeline + notifications to the reporter.
-2. Receipt upload on finance transactions for stronger transparency score.
-3. Onboarding flow for a second RT under Super Admin.
+1. Tugaskan laporan ke pengurus tertentu + SLA penanganan.
+2. Ekspor buku kas (CSV/Excel) untuk audit rapat warga.
+3. Onboarding RT kedua di Super Admin.
+

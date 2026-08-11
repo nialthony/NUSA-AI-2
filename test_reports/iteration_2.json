@@ -1,0 +1,32 @@
+{
+  "summary": "Focused testing of the 3 new NUSA features (Riwayat Status Laporan, Bukti Transaksi, Peta Titik Masalah) plus regression smoke. Wrote 12 new pytest cases in /app/backend/tests/test_new_features.py covering timeline field, status-change appends event + 400 on same status, notifications scoping + mark-as-read + auth-required, receipt upload + fetch image + resident-403 + bad-type-400 + unknown-tx-404, and /api/reports/map admin-vs-resident with 27 points, per-RT lat/lng, hotspots sorted by urgent. All 12 backend tests PASS. Frontend Playwright confirmed: resident timeline-toggle-0 shows 'Riwayat Status (3)' label, expands timeline-0 with Indonesian 'diperbarui ... oleh Pak Hendra Gunawan' entries, collapses cleanly; resident-bell opens notif-panel with 8 items (first item mentions status change 'diperbarui dari Selesai menjadi Ditangani'); resident-receipt-N link present on /resident/finance; admin-timeline-toggle-0 label 'Riwayat (3)' expands admin-timeline-0; /admin/finance has BUKTI column, 83 receipt-upload buttons, receipt-file-input works via set_input_files, resulting receipt-view href points to /api/files/nusa/receipts/<uuid>/<uuid>.png; /admin/analytics report-map-card + report-map render 27 points initially, severity=HIGH narrows to 11, open-toggle narrows to 5, hotspot-1 recenters without errors, ZERO 'Map container is already initialized' errors after navigating away and back twice, ZERO console errors; mobile 390x844 no horizontal overflow on /resident, /resident/reports, /resident/finance.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_new_features.py",
+    "/app/test_reports/pytest/new_features_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Receipt route /api/files/{path} exposes filesystem-shaped path in URL (uuid/uuid.png) — OK for MVP but consider signed URLs or path traversal guard verification for prod.",
+    "PATCH /reports/{id}/status returning 400 on same status is a good invariant; ensure clients (admin UI) disable the current status option to avoid noisy 400s.",
+    "Notifications endpoint returns full list; add pagination + soft cap before list grows unbounded per user."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_new_features.py"
+  ],
+  "success_rate": {"backend": "100% (12/12 new tests)", "frontend": "100% of listed new-feature scenarios"},
+  "test_credentials": "resident@nusa.demo / demo123, admin@nusa.demo / demo123, superadmin@nusa.demo / demo123 (all verified working)",
+  "seed_data_creation": "Data left behind by this iteration: (a) 2-3 status changes on real reports via PATCH (statuses toggled Ditangani/Selesai with note 'TEST_ ubah status' / 'TEST_ notif'); (b) additional Notification rows created for the demo resident from those status changes (later marked read by test); (c) 1 receipt image uploaded via UI + several via backend tests attached to random tx rows under nusa/receipts/<uuid>/<uuid>.png. No new finance transactions were added in this iteration (previous iteration_1 already added +75000). Reseed for a clean state before demo.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Two test suites now: /app/backend/tests/backend_test.py (original 28 regression) and /app/backend/tests/test_new_features.py (12 new-feature tests). Run: pytest /app/backend/tests/ -v. Key selectors verified: timeline-toggle-N, timeline-N, admin-timeline-toggle-N, admin-timeline-N, resident-bell, notif-badge, notif-panel, notif-item-N, receipt-upload-N, receipt-view-N, receipt-file-input, resident-receipt-N, report-map-card, report-map, map-point-count, map-severity-filter (SELECT with value 'HIGH'), map-open-toggle, hotspot-N, report-status-select-N. Note: receipt-file-input is a single hidden input at the page level — set_input_files works directly on it (no need to click receipt-upload-N first, but clicking a specific row's upload button sets which tx receives the file so if you upload without clicking a row it may attach to the last-clicked/default row). Leaflet renders markers as div-icons (not .leaflet-marker-icon css class) so use data-testid='map-point-count' text for count instead. No 'Map container is already initialized' error observed after double navigation. Auth flow uses email/password on /login (no data-testid on inputs but type=email/password work).",
+  "rca of the issue": "N/A — no bugs found in this iteration."
+}

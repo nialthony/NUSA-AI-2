@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Camera, Wallet, Users, User, LogOut, Bell } from "lucide-react";
+import { Home, Camera, Wallet, Users, User, LogOut, Bell, CheckCheck } from "lucide-react";
+import { api, tanggal } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 const NAV = [
@@ -16,6 +17,26 @@ export function ResidentLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
+  const [notif, setNotif] = useState({ unread: 0, items: [] });
+  const [notifOpen, setNotifOpen] = useState(false);
+
+  useEffect(() => {
+    api.get("/notifications").then(({ data }) => setNotif(data)).catch(() => {});
+  }, []);
+
+  const openNotif = async () => {
+    const next = !notifOpen;
+    setNotifOpen(next);
+    setMenu(false);
+    if (next && notif.unread > 0) {
+      try {
+        await api.post("/notifications/read");
+        setNotif((n) => ({ unread: 0, items: n.items.map((i) => ({ ...i, read: true })) }));
+      } catch {
+        /* biarkan badge apa adanya bila gagal */
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] pb-24">
@@ -29,12 +50,20 @@ export function ResidentLayout({ children }) {
             </div>
           </Link>
           <div className="flex items-center gap-1">
-            <Link to="/resident/community" data-testid="resident-bell" aria-label="Pengumuman" className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100">
+            <button
+              data-testid="resident-bell" onClick={openNotif} aria-label="Notifikasi laporan"
+              className="relative rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100"
+            >
               <Bell className="h-4 w-4" />
-            </Link>
+              {notif.unread > 0 && (
+                <span data-testid="notif-badge" className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-semibold text-white">
+                  {notif.unread}
+                </span>
+              )}
+            </button>
             <button
               data-testid="resident-avatar-btn"
-              onClick={() => setMenu((m) => !m)}
+              onClick={() => { setMenu((m) => !m); setNotifOpen(false); }}
               aria-label="Menu akun"
               className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 font-display text-xs font-semibold text-emerald-800"
             >
@@ -42,6 +71,31 @@ export function ResidentLayout({ children }) {
             </button>
           </div>
         </div>
+        {notifOpen && (
+          <div data-testid="notif-panel" className="mx-auto max-w-2xl px-5 pb-3">
+            <div className="nusa-card max-h-80 overflow-y-auto p-2">
+              <p className="flex items-center gap-1.5 px-2 py-2 text-[11px] uppercase tracking-[0.16em] text-slate-400">
+                <CheckCheck className="h-3.5 w-3.5" /> Kabar Laporan Anda
+              </p>
+              {notif.items.length === 0 && (
+                <p data-testid="notif-empty" className="px-2 pb-3 text-xs text-slate-500">
+                  Belum ada pembaruan status. Kami akan memberi tahu Anda saat pengurus menindaklanjuti laporan.
+                </p>
+              )}
+              {notif.items.map((n, i) => (
+                <Link
+                  key={n.id} to="/resident/reports" data-testid={`notif-item-${i}`}
+                  onClick={() => setNotifOpen(false)}
+                  className="block rounded-lg px-2 py-2.5 transition-colors hover:bg-slate-50"
+                >
+                  <p className="text-sm font-medium">{n.title}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-slate-600">{n.body}</p>
+                  <p className="mt-1 text-[11px] text-slate-400">{tanggal(n.created_at)}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
         {menu && (
           <div data-testid="resident-account-menu" className="mx-auto max-w-2xl px-5 pb-3">
             <div className="nusa-card flex items-center justify-between p-3">
