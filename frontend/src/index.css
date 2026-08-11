@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --nusa-bg: #fafafa;
+  --nusa-ink: #0f172a;
+}
+
+* {
+  border-color: #e2e8f0;
+}
+
+body {
+  margin: 0;
+  background: var(--nusa-bg);
+  color: var(--nusa-ink);
+  font-family: Inter, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: Outfit, sans-serif;
+}
+
+::selection {
+  background: #a7f3d0;
+  color: #064e3b;
+}
+
+.nusa-card {
+  @apply bg-white border border-slate-200 rounded-xl shadow-sm;
+}
+
+.nusa-grain {
+  background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.animate-rise {
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse-ring {
+  animation: pulsering 2.4s ease-in-out infinite;
+}
+
+@keyframes pulsering {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.15; transform: scale(1.12); }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+}

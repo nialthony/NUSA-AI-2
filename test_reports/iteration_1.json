@@ -1,0 +1,39 @@
+{
+  "summary": "Full-stack testing of NUSA MVP. Executed 28 pytest backend tests covering auth, RBAC, analytics/pulse math, reports (analyze+create+status), finance CRUD/balance, residents/households, announcements, AI ask, monthly AI report, superadmin. All 28 backend tests PASS (after adjusting 2 test assertions to actual API contract). Frontend Playwright E2E covered: login (all 3 demo roles), RBAC redirects (resident→/admin→/resident, admin→/superadmin→/admin, unauth→/admin→/login), resident dashboard snapshot cards, Smart Report end-to-end with real PNG upload → AI analysis result with all 5 fields → submit → redirect and item visible top of /resident/reports, admin report status change persists after reload, all 5 filters present, Drainase filter narrows list to 5, Ask NUSA (admin/ai) returns Indonesian grounded answer citing balance Rp 12.500.000, announcement creation from /admin/ai visible on /resident/community, finance add tx increments balance exactly by 25.000 (12.500.000→12.525.000), monthly AI report generates all 5 sections filled + download-pdf-btn present, analytics page renders 27 SVG chart elements, mobile 390x844 bottom nav (home/reports/finance/community/profile) navigates correctly, no horizontal overflow, resident finance is read-only (no add-tx-btn), zero console errors during full admin flow.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Multiple pages (initial mount)", "issues": [
+        "React hydration console warning: '<span> cannot be a child of <option>'. Emitted from injected x-source dev instrumentation wrapping option text with a <span>; likely from build-time source-map tooling, not app code. Cosmetic in dev only.",
+        "Recharts prints width(-1)/height(-1) warning on some layouts during initial render (charts still render correctly)."
+      ]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py POST /reports accepts raw dict without Pydantic validation — could tighten with a ReportIn schema (severity/rt enum, length caps already partially enforced).",
+    "GET /reports lets any authenticated caller filter by rt/status/category on their own scope; ok. Note reports/all does not paginate — fine for MVP with ~30 rows.",
+    "Analyze endpoint generates a UUID path even when upload fails and sets image_path=''; frontend properly shows 'Tanpa Foto' — verified indirectly.",
+    "CORS uses allow_origins='*' with allow_credentials=True — browsers will reject credentialed cookies; set explicit origins for production.",
+    "Auth cookie is set with SameSite=None + Secure — good for cross-site preview, but token is also stored in localStorage (XSS risk). Consider consolidating."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/__init__.py"
+  ],
+  "success_rate": {"backend": "100% (28/28)", "frontend": "100% of listed scenarios"},
+  "test_credentials": "resident@nusa.demo / demo123, admin@nusa.demo / demo123, superadmin@nusa.demo / demo123 (all verified working)",
+  "seed_data_creation": "Left behind during testing: 1 real report ('Laporan gambar tidak valid') submitted by resident via UI upload; 1 announcement 'TEST_ Pengumuman Uji UI'; ~3 finance income entries totaling +75.000 (25k backend test + 25k backend test + 25k UI test) — current balance is Rp 12.525.000 instead of seed Rp 12.450.000. Not blocking; new deploy re-seeds from empty DB.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Full pytest suite at /app/backend/tests/backend_test.py — run: pytest /app/backend/tests/ -v --junitxml=/app/test_reports/pytest/pytest_results.xml. All data-testid IDs used in workflows are present. Note: file input in NewReport is hidden via CSS — use set_input_files with state='attached' not visible. AuthProvider does a full /auth/me on every hard page navigation so allow ~2-3s wait after page.goto before selectors appear. Balance is Rp 12.525.000 currently after testing, not the seeded 12.450.000."
+}

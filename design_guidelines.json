@@ -1,0 +1,144 @@
+{
+  "theme": "Light theme preferred (Trust, transparency, government-level clarity but modern SaaS execution)",
+  "language": "Bahasa Indonesia",
+  "typography": {
+    "headings": {
+      "family": "Outfit, sans-serif",
+      "weights": ["500", "600", "700"],
+      "usage": "Used for page titles, section headers, hero text, and important numbers."
+    },
+    "body": {
+      "family": "Inter, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Used for data tables, forms, small labels, descriptions, and all dashboard metrics."
+    },
+    "rules": [
+      "Headlines > 32px MUST use tracking-tight.",
+      "Overlines / Labels MUST be uppercase, tiny, wide spacing (tracking-[0.2em]).",
+      "Line height: leading-none for headers, leading-relaxed for body."
+    ]
+  },
+  "colors": {
+    "background": {
+      "primary": "#FAFAFA",
+      "secondary": "#FFFFFF",
+      "tertiary": "#F1F5F9"
+    },
+    "text": {
+      "primary": "#0F172A",
+      "secondary": "#475569",
+      "tertiary": "#94A3B8"
+    },
+    "border": {
+      "default": "#E2E8F0",
+      "focus": "#94A3B8"
+    },
+    "primary": {
+      "default": "#10B981",
+      "hover": "#059669",
+      "active": "#047857",
+      "text_on_primary": "#FFFFFF",
+      "light_bg": "#D1FAE5",
+      "light_text": "#065F46"
+    },
+    "status": {
+      "warning": "#F59E0B",
+      "warning_bg": "#FEF3C7",
+      "danger": "#EF4444",
+      "danger_bg": "#FEE2E2",
+      "info": "#3B82F6",
+      "info_bg": "#DBEAFE"
+    },
+    "rules": [
+      "Never use pure black or pure gray. Grays must be tinted slightly with blue (Slate/Zinc).",
+      "Only use Primary color (Emerald) for CTAs, active states, and AI accents.",
+      "Do NOT use heavy gradients. Limit to extremely subtle, high-transparency backgrounds if needed."
+    ]
+  },
+  "visual_enhancers": {
+    "surfaces": [
+      {
+        "name": "Glassmorphism (Header/Nav)",
+        "classes": "backdrop-blur-xl bg-white/70 border-b border-slate-200 shadow-sm",
+        "usage": "Sticky navigation, mobile bottom tab bar."
+      },
+      {
+        "name": "Dashboard Cards",
+        "classes": "bg-white border border-slate-200 rounded-xl shadow-sm",
+        "usage": "Admin widgets, resident report cards, finance tables."
+      }
+    ],
+    "shadows": {
+      "sm": "shadow-sm (for standard cards)",
+      "md": "shadow-md (for dropdowns, hovers)",
+      "lg": "shadow-lg (for modals)"
+    },
+    "borders": "1px solid #E2E8F0. Rounded corners: rounded-xl for main cards, rounded-2xl for hero images, rounded-full for pills/buttons."
+  },
+  "components": {
+    "buttons": "Pill-shaped or rounded-lg. Primary uses Emerald background. Subtle scale-down on click (active:scale-95).",
+    "inputs": "Shadcn standard but customized to rounded-lg, border-slate-200, focus:ring-emerald-500.",
+    "tables": "Clean, border-b only for rows (no vertical borders). Right-aligned numbers for finance.",
+    "badges": "Soft background + dark text. rounded-full text-xs font-medium px-2.5 py-0.5.",
+    "ai_search": "Prominent, modern shadow, subtle glowing border on focus, with an AI sparkle icon."
+  },
+  "grids_layouts": {
+    "mobile_resident": "Mobile-first approach. Max-w-md mx-auto for resident views, bottom navigation bar (fixed bottom-0 z-50). Ample vertical spacing.",
+    "desktop_admin": "Bento Grid strategy (grid-cols-1 md:grid-cols-3 lg:grid-cols-4). Tight gaps (gap-4 or gap-6). Cards span 1 or 2 columns based on metric importance.",
+    "spacing": "Generous spacing. p-6 or p-8 for cards. gap-6 for lists. Section spacing py-16 or py-24 for landing page."
+  },
+  "motion": {
+    "hover": "transition-all duration-200 ease-in-out",
+    "cards": "hover:-translate-y-1 hover:shadow-sm",
+    "lists": "Staggered entrance animations via framer-motion (initial opacity 0, y 20).",
+    "rules": [
+      "Do not use `transition: all` broadly, specify properties.",
+      "Animations should be snappy (<= 300ms) and purposeful."
+    ]
+  },
+  "accessibility": {
+    "contrast": "Text must meet WCAG AA. Emerald text on white must be at least #059669.",
+    "focus": "focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+    "testing": "All interactive elements MUST include a `data-testid` attribute."
+  },
+  "media": {
+    "icons": "lucide-react for all general icons. Consistent stroke width (1.5 or 2).",
+    "charts": "recharts (LineChart for 6-month trend, BarChart for report analytics, PieChart for AI breakdown). Minimal grid lines, no legend clutter."
+  },
+  "image_urls": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1713634437183-f86ae928dcd4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwxfHxpbmRvbmVzaWFuJTIwbmVpZ2hib3Job29kfGVufDB8fHx8MTc4NjQ3MzEwNXww&ixlib=rb-4.1.0&q=85",
+      "description": "Indonesian neighborhood with buildings (for landing page context)."
+    },
+    "resident_avatar": {
+      "url": "https://images.unsplash.com/photo-1721713478248-ded19734143d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwyfHxpbmRvbmVzaWFuJTIwcGVvcGxlJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzg2NDczMTA2fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Resident profile picture."
+    },
+    "community_activity": {
+      "url": "https://images.unsplash.com/photo-1745487383873-4c0a1b403e1f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzR8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBtZWV0aW5nJTIwYXNpYXxlbnwwfHx8fDE3ODY0NzMxMDV8MA&ixlib=rb-4.1.0&q=85",
+      "description": "People gathering, for community announcements and activities."
+    }
+  },
+  "instructions_to_main_agent": [
+    "Language: Entire UI MUST be in Bahasa Indonesia.",
+    "Create a responsive multi-layout app: Marketing landing page, mobile-first Resident portal (with bottom nav), and desktop-first Admin Command Center.",
+    "Implement clear routing using react-router-dom for the specified routes.",
+    "Do NOT use pure black backgrounds or overly heavy gradients. Use the specified Slate/Emerald palette.",
+    "Use Shadcn UI customized with our specific border-radii and colors.",
+    "Ensure the Resident dashboard utilizes a fixed bottom navigation bar on mobile.",
+    "Implement the 'Community Pulse' score (87/100) using Recharts or a custom circular progress.",
+    "Add 'data-testid' to all buttons, inputs, and links."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy and soft shadows.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) for sticky headers and navs. NEVER use pure transparency without blur/background for content overlays.",
+    "You MUST NOT apply universal transition. Eg: `transition: all`.",
+    "You MUST NOT center align the app container, ie do not add `.App { text-align: center; }` in the css file.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations.",
+    "NEVER use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯 etc for icons. Use Lucide icons instead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "All interactive and key informational elements MUST include `data-testid` attribute.",
+    "Use `sonner` for toast notifications."
+  ]
+}
