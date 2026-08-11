@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Camera, Wallet, Users, User, LogOut, Bell, CheckCheck } from "lucide-react";
 import { api, tanggal } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { NusaLogo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/Shared";
 
 const NAV = [
   { to: "/resident", label: "Beranda", icon: Home, id: "home" },
@@ -43,13 +45,14 @@ export function ResidentLayout({ children }) {
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-5 py-3.5">
           <Link to="/resident" data-testid="resident-logo" className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-900 font-display text-sm font-semibold text-white">N</span>
+            <NusaLogo className="h-8 w-8" />
             <div className="leading-tight">
               <p className="font-display text-sm font-semibold">NUSA</p>
               <p className="text-[10px] text-slate-500">RT 09 / RW 04 · Desa Sukamaju</p>
             </div>
           </Link>
           <div className="flex items-center gap-1">
+            <ThemeToggle className="mr-1 h-8 w-8" />
             <button
               data-testid="resident-bell" onClick={openNotif} aria-label="Notifikasi laporan"
               className="relative rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100"

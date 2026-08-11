@@ -67,8 +67,17 @@ announcements; activities; RBAC; polished loading/empty/error states; mobile-fir
 - Diuji: 12 tes backend baru (`/app/backend/tests/test_new_features.py`) semuanya lulus + E2E desktop/mobile
   tanpa error konsol.
 
+## Iteration 3 — Logo NUSA & Dark Mode (2026-06)
+- Logo resmi NUSA dipasang sebagai favicon (`favicon.ico`, `apple-touch-icon.png`), ikon PWA, dan
+  logo aplikasi (`components/Logo.jsx`) di landing, /about, login, layout warga, sidebar admin, dan Super Admin.
+  Latar putih logo dibuat transparan agar tampil baik di tema terang & gelap. Judul halaman: "NUSA — AI Community Operating System".
+- Dark mode: `context/ThemeContext.jsx` (kelas `dark` di `<html>`, tersimpan di localStorage, ikut `color-scheme`),
+  tombol `ThemeToggle` (data-testid `theme-toggle`) di semua header/sidebar. Palet gelap didefinisikan
+  di `index.css` (permukaan #080D18/#0F172A, border #22304A, aksen emerald tetap), termasuk penyesuaian
+  input, tabel, kartu wawasan, dan peta Leaflet (tile diredupkan + popup gelap).
+
 ## Next Tasks
 1. Tugaskan laporan ke pengurus tertentu + SLA penanganan.
 2. Ekspor buku kas (CSV/Excel) untuk audit rapat warga.
-3. Onboarding RT kedua di Super Admin.
+3. Notifikasi WhatsApp (ditunda oleh pengguna — perlu pilihan penyedia & kredensial).
 

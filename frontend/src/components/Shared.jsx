@@ -1,5 +1,22 @@
-import { Loader2, Sparkles, TrendingUp, TriangleAlert, Info, CheckCircle2 } from "lucide-react";
+import { Loader2, Sparkles, TrendingUp, TriangleAlert, Info, CheckCircle2, Sun, Moon } from "lucide-react";
 import { STATUS_STYLE, SEVERITY_STYLE } from "@/lib/api";
+import { useTheme } from "@/context/ThemeContext";
+
+export const ThemeToggle = ({ className = "" }) => {
+  const { theme, toggle } = useTheme();
+  const dark = theme === "dark";
+  return (
+    <button
+      data-testid="theme-toggle"
+      onClick={toggle}
+      aria-label={dark ? "Aktifkan mode terang" : "Aktifkan mode gelap"}
+      title={dark ? "Mode terang" : "Mode gelap"}
+      className={`grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 ${className}`}
+    >
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+};
 
 export const Badge = ({ children, className = "", testId }) => (
   <span data-testid={testId} className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${className}`}>

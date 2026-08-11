@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { ThemeToggle } from "@/components/Shared";
 
 export default function About() {
   return (
@@ -9,7 +10,10 @@ export default function About() {
           <Link data-testid="about-back-link" to="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900">
             <ArrowLeft className="h-4 w-4" /> Kembali
           </Link>
-          <Link data-testid="about-login-btn" to="/login" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Masuk</Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="h-8 w-8" />
+            <Link data-testid="about-login-btn" to="/login" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Masuk</Link>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-16">

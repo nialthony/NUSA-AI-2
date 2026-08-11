@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, FileText, Users, Wallet, ChartBar, Sparkles, FileBarChart, LogOut, Menu, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { NusaLogo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/Shared";
 
 const NAV = [
   { to: "/admin", label: "Command Center", icon: LayoutDashboard, id: "dashboard" },
@@ -44,7 +46,7 @@ export function AdminLayout({ children }) {
     <div className="min-h-screen bg-[#FAFAFA] lg:flex">
       <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white p-5 lg:flex lg:flex-col">
         <Link to="/admin" data-testid="admin-logo" className="mb-8 flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-900 font-display text-sm font-semibold text-white">N</span>
+          <NusaLogo className="h-10 w-10" />
           <div className="leading-tight">
             <p className="font-display text-base font-semibold tracking-tight">NUSA</p>
             <p className="text-[10px] uppercase tracking-[0.16em] text-slate-400">Command Center</p>
@@ -56,21 +58,29 @@ export function AdminLayout({ children }) {
             <p className="text-sm font-medium">{user?.name}</p>
             <p className="text-xs capitalize text-slate-500">{user?.role}</p>
           </div>
-          <button
-            data-testid="admin-logout-btn"
-            onClick={() => { logout(); navigate("/login"); }}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
-          >
-            <LogOut className="h-4 w-4" /> Keluar
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              data-testid="admin-logout-btn"
+              onClick={() => { logout(); navigate("/login"); }}
+              className="flex flex-1 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
+            >
+              <LogOut className="h-4 w-4" /> Keluar
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur-xl lg:hidden">
-        <span className="font-display font-semibold">NUSA Admin</span>
-        <button data-testid="admin-menu-btn" aria-label="Menu" onClick={() => setOpen((o) => !o)} className="rounded-lg p-2 hover:bg-slate-100">
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <span className="flex items-center gap-2 font-display font-semibold">
+          <NusaLogo className="h-7 w-7" /> NUSA Admin
+        </span>
+        <div className="flex items-center gap-2">
+          <ThemeToggle className="h-8 w-8" />
+          <button data-testid="admin-menu-btn" aria-label="Menu" onClick={() => setOpen((o) => !o)} className="rounded-lg p-2 hover:bg-slate-100">
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </header>
       {open && <div className="border-b border-slate-200 bg-white p-4 lg:hidden">{links}</div>}
 

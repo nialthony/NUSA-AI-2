@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Camera, Sparkles, Activity, Wallet, FileBarChart, MessageSquareOff, FileSpreadsheet, ClipboardList, Check } from "lucide-react";
 import { api } from "@/lib/api";
+import { NusaLogo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/Shared";
 
 const FEATURES = [
   { icon: Camera, title: "Smart Report", desc: "Warga memotret masalah, AI langsung mengklasifikasi kategori, tingkat urgensi, dan rekomendasi tindakan." },
@@ -29,12 +31,13 @@ export default function Landing() {
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
           <Link to="/" data-testid="landing-logo" className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-900 font-display text-sm font-semibold text-white">N</span>
+            <NusaLogo className="h-9 w-9" />
             <span className="font-display text-base font-semibold tracking-tight">NUSA</span>
           </Link>
           <nav className="flex items-center gap-2 md:gap-5">
             <Link data-testid="landing-about-link" to="/about" className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 md:block">Tentang</Link>
             <a data-testid="landing-how-link" href="#solusi" className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 md:block">Cara Kerja</a>
+            <ThemeToggle />
             <Link data-testid="landing-login-btn" to="/login" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 active:scale-95">
               Masuk
             </Link>

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import "@/App.css";
 import { AuthProvider, useAuth, homeFor } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { Loading } from "@/components/Shared";
 
 const Landing = lazy(() => import("@/pages/Landing"));
@@ -53,7 +54,8 @@ const ADMIN_ROUTES = [
 export default function App() {
   return (
     <div className="App">
-      <AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
         <BrowserRouter>
           <Toaster position="top-center" richColors />
           <Suspense fallback={<Loading />}>
@@ -73,6 +75,7 @@ export default function App() {
           </Suspense>
         </BrowserRouter>
       </AuthProvider>
+      </ThemeProvider>
     </div>
   );
 }

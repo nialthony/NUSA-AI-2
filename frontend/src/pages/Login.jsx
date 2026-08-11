@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 import { useAuth, homeFor } from "@/context/AuthContext";
+import { NusaLogo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/Shared";
 
 const DEMO = [
   { role: "Warga", email: "resident@nusa.demo", desc: "Budi Santoso · RT 09", id: "resident" },
@@ -43,7 +45,7 @@ export default function Login() {
     <div className="min-h-screen lg:grid lg:grid-cols-2">
       <div className="hidden flex-col justify-between bg-slate-900 p-12 text-white lg:flex">
         <Link to="/" data-testid="login-logo" className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-white font-display text-sm font-semibold text-slate-900">N</span>
+          <NusaLogo className="h-10 w-10" />
           <span className="font-display text-lg font-semibold tracking-tight">NUSA</span>
         </Link>
         <div>
@@ -60,9 +62,12 @@ export default function Login() {
       </div>
 
       <div className="flex min-h-screen flex-col justify-center bg-[#FAFAFA] px-6 py-12 lg:px-16">
-        <Link data-testid="login-back-link" to="/" className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 lg:hidden">
-          <ArrowLeft className="h-4 w-4" /> Beranda
-        </Link>
+        <div className="mb-8 flex items-center justify-between lg:justify-end">
+          <Link data-testid="login-back-link" to="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 lg:hidden">
+            <ArrowLeft className="h-4 w-4" /> Beranda
+          </Link>
+          <ThemeToggle />
+        </div>
         <div className="mx-auto w-full max-w-md">
           <h2 className="font-display text-3xl font-semibold tracking-tight">Masuk ke NUSA</h2>
           <p className="mt-2 text-sm text-slate-500">Gunakan akun demo di bawah atau kredensial Anda.</p>

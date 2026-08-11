@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { LogOut, Database, Sparkles, Building2, Users } from "lucide-react";
 import { api, errText } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Stat, Skeleton, ErrorBox, Badge, SectionTitle, AiModeChip } from "@/components/Shared";
+import { Stat, Skeleton, ErrorBox, Badge, SectionTitle, AiModeChip, ThemeToggle } from "@/components/Shared";
+import { NusaLogo } from "@/components/Logo";
 
 export default function SuperAdmin() {
   const { user, logout } = useAuth();
@@ -23,7 +24,7 @@ export default function SuperAdmin() {
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-900 font-display text-sm font-semibold text-white">N</span>
+            <NusaLogo className="h-9 w-9" />
             <div className="leading-tight">
               <p className="font-display text-sm font-semibold">NUSA Platform</p>
               <p className="text-[10px] uppercase tracking-[0.16em] text-slate-400">Super Admin</p>
@@ -31,6 +32,7 @@ export default function SuperAdmin() {
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden text-xs text-slate-500 sm:block">{user?.email}</span>
+            <ThemeToggle className="h-8 w-8" />
             <button
               data-testid="superadmin-logout-btn" onClick={() => { logout(); navigate("/login"); }}
               className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
