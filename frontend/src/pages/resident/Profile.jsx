@@ -53,7 +53,7 @@ export default function Profile() {
         <p className="flex items-center gap-2 text-sm font-medium"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Status Sistem</p>
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
           <AiModeChip provider={provider} />
-          <Badge className="bg-slate-100 text-slate-600">Database PostgreSQL</Badge>
+          <Badge className="bg-slate-100 text-slate-600">Database MongoDB</Badge>
           <Badge className="bg-slate-100 text-slate-600">NUSA MVP 1.0</Badge>
         </div>
       </div>

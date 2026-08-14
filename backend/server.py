@@ -12,11 +12,7 @@ from typing import Optional
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, UploadFile, File, Form, Response, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, EmailStr
-from sqlalchemy import select, desc
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
-
-from db import Base, engine, get_db, SessionLocal
+from db import select, desc, selectinload, get_db, SessionLocal, init_db, MongoSession as AsyncSession
 from models import (User, Resident, Household, Report, ReportAIAnalysis, FinanceTransaction,
                     Announcement, Activity, AIConversation, ReportStatusEvent, Notification)
 from auth import hash_password, verify_password, create_access_token, get_current_user, require_roles
@@ -489,7 +485,7 @@ async def super_overview(db: AsyncSession = Depends(get_db), user: User = Depend
         "users": [{"id": u.id, "email": u.email, "name": u.name, "role": u.role} for u in users],
         "ai_provider": ai_service.provider_mode(),
         "ai_queries": len([c for c in convs if c.role == "user"]),
-        "platform": {"database": "PostgreSQL", "storage": "Emergent Object Storage", "version": "MVP 1.0"},
+        "platform": {"database": "MongoDB", "storage": "Emergent Object Storage", "version": "MVP 1.0"},
     }
 
 
@@ -505,8 +501,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    await init_db()
     async with SessionLocal() as db:
         await seed(db)
     try:

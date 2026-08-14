@@ -1,8 +1,8 @@
 """Layanan analitik komunitas: menghitung Community Pulse & wawasan dari data nyata."""
 from datetime import datetime, timezone, timedelta
 from collections import Counter
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from db import select
+from db import MongoSession as AsyncSession
 from models import Report, FinanceTransaction, Activity, Resident, Household, CommunityMetric
 
 SEVERITY_WEIGHT = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}

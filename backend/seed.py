@@ -1,8 +1,9 @@
 import os
+import os
 import random
 from datetime import datetime, timezone, timedelta
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from db import select
+from db import MongoSession as AsyncSession
 from models import (User, Household, Resident, Report, ReportAIAnalysis, FinanceTransaction,
                     Announcement, Activity, CommunityMetric, ReportStatusEvent, Notification)
 from auth import hash_password
@@ -91,7 +92,8 @@ async def seed(db: AsyncSession):
             u.name, u.role, u.phone = name, role, phone
     await db.commit()
 
-    if (await db.execute(select(func.count(Report.id)))).scalar() or 0:
+    existing_reports = (await db.execute(select(Report))).scalars().all()
+    if existing_reports:
         return
 
     now = datetime.now(timezone.utc)

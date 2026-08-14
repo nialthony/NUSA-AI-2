@@ -9,9 +9,9 @@ intelligence. Roles: Resident, Community Admin, lightweight Super Admin. Premium
 
 ## Architecture
 - Backend: FastAPI (`/app/backend/server.py`), all routes under `/api`.
-- Database: **PostgreSQL** via SQLAlchemy async (`db.py`, `models.py`), managed by supervisor
-  (`/etc/supervisor/conf.d/postgres.conf`). Tables: users, households, residents, reports,
-  report_ai_analysis, finance_transactions, announcements, activities, community_metrics, ai_conversations.
+- Database: **MongoDB** via Motor/PyMongo async (`db.py`, `models.py`). Collections: users, households,
+  residents, reports, report_ai_analysis, finance_transactions, announcements, activities,
+  community_metrics, ai_conversations, report status events, and notifications.
 - Auth: JWT (Bearer + httpOnly cookie), bcrypt, roles resident/admin/superadmin (`auth.py`).
 - AI: provider abstraction in `ai_service.py` — `AI_PROVIDER=external` (Emergent LLM key,
   gemini-3-flash-preview) with automatic deterministic **mock fallback** ("AI Demo Mode" chip).

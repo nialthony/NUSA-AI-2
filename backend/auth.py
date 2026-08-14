@@ -1,11 +1,11 @@
 import os
 from datetime import datetime, timezone, timedelta
+import os
 import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, Request
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from db import get_db
+from db import get_db, select
+from db import MongoSession as AsyncSession
 from models import User
 
 ALGO = "HS256"
